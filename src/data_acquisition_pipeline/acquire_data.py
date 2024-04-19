@@ -3,8 +3,6 @@ import argparse
 from datetime import date, timedelta
 import requests
 
-# API KEYS (If necessary)
-from api_keys import EODHD_API_KEY
 
 # GLOBALS
 
