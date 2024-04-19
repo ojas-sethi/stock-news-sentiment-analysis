@@ -15,6 +15,11 @@ NUM_DAYS = 2
 def build_eodhd_url(s, from_date, to_date, limit=50, offset=0):
     return "https://eodhd.com/api/news?s=" + s +".US&offset="+offset+"&limit="+limit+"&from="+from_date+"&to="+to_date+"&api_token="+EODHD_API_KEY+"&fmt=json"
 
+def fetch_news_data_for_ticker(ticker, from_date, to_date, ):
+    url = build_eodhd_url(ticker.lower(), from_date.isoformat(), to_date.isoformat(), "1000", "0")
+    return requests.get(url).json()
+
+
 def main():
     # parse any commandline arguments
     parser = argparse.ArgumentParser()
@@ -44,9 +49,8 @@ def main():
             from_date = to_date - timedelta(days=NUM_DAYS)
             print(f"From Date: {from_date.isoformat()}")
             print(f"To Date: {to_date.isoformat()}")
-            url = build_eodhd_url(ticker.lower(), from_date.isoformat(), to_date.isoformat(), "1000", "0")
+            data = fetch_news_data_for_ticker(ticker, from_date, to_date)
             output_filename = args.output_dir+os.sep+ticker+os.sep+from_date.isoformat()+"_"+to_date.isoformat()+"_news.json"
-            data = requests.get(url).json()
             with open(output_filename, "w+") as f:
                 json.dump(data, f)
             
