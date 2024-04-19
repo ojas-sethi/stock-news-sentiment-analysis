@@ -1,0 +1,11 @@
+name: cs839_project_env
+channels:
+  - defaults
+dependencies:
+  - ipykernel
+  - numpy
+  - pandas
+  - python=3.10
+  - pip:
+    - requests
+prefix: /Users/arnavsharma/miniconda3/envs/cs839_project_env
