@@ -22,7 +22,7 @@ def main():
     # parse any commandline arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--ticker_file", type=str, default='ticker_data.json', help="Path to the JSON file that contains ticker names and dates.")
-    parser.add_argument("--output_dir", type=str, default='../../data', help="Path to the directory where acquired data should be stored.")
+    parser.add_argument("--output_dir", type=str, default='../../data/raw_data', help="Path to the directory where acquired data should be stored.")
     parser.add_argument("--debug", default=False, help="Setting flag to true disables api requests being sent out.", action="store_true")
     #Add any more arguments as and when needed
     args = parser.parse_args()
@@ -35,8 +35,6 @@ def main():
     if ticker_dates is None:
         print(f"Failed to read json file from path {args.ticker_file}")
         exit(1)
-    
-    news_data = {}
 
     for ticker in ticker_dates.keys():
         if ticker not in TICKER_TO_DOWNLOAD:

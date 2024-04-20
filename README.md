@@ -5,6 +5,6 @@ A project which aims to link the sentiment analysis of news articles to the fluc
 ## DONT Push your API Keys to Github
 Run the following command when you pull from the root of the repo:
 
-```git update-index --skip-worktree src/data_acquisition_pipeline/api_keys.py```
+```git update-index --skip-worktree src/api_keys/__init__.py```
 
 
