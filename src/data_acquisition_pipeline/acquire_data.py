@@ -7,8 +7,10 @@ import requests
 # GLOBALS
 
 # How many days before our chosen date do we fetch news articles from
-NUM_DAYS = 2
+NUM_DAYS_NEWS = 2
+NUM_DAYS_PRICE = 1
 TICKER_TO_DOWNLOAD = {"AMZN", "NVDA", "F", "VZ", "AAPL", "TSLA", "BA", "BAC", "ILMN", "MMM"}
+EODHD_API_KEY = "placeholder"
 
 def build_eodhd_url(s, from_date, to_date, limit=50, offset=0):
     return "https://eodhd.com/api/news?s=" + s +".US&offset="+offset+"&limit="+limit+"&from="+from_date+"&to="+to_date+"&api_token="+EODHD_API_KEY+"&fmt=json"
@@ -17,6 +19,43 @@ def fetch_news_data_for_ticker(ticker, from_date, to_date, ):
     url = build_eodhd_url(ticker.lower(), from_date.isoformat(), to_date.isoformat(), "1000", "0")
     return requests.get(url).json()
 
+def fetch_price_data_for_ticker(ticker, from_date, to_date):
+    url = f"https://eodhd.com/api/eod/{ticker}.US?api_token={EODHD_API_KEY}&fmt=json&from={from_date.isoformat()}&to={to_date.isoformat()}"
+    return requests.get(url).json()
+
+def fetch_news(args, ticker_dates, ticker):
+    for date_str in ticker_dates[ticker]["dates"]:
+        #If news data for this ticker and date combination was already saved, skip ahead!
+        if not os.path.isdir(args.output_dir+os.sep+ticker.lower()):
+            os.mkdir(args.output_dir+os.sep+ticker.lower())
+
+        to_date = date.fromisoformat(date_str)
+        from_date = to_date - timedelta(days=NUM_DAYS_NEWS)
+        if args.debug:
+            print(f"From Date: {from_date.isoformat()}")
+            print(f"To Date: {to_date.isoformat()}")
+        else:
+            data = fetch_news_data_for_ticker(ticker, from_date, to_date)
+            output_filename = args.output_dir+os.sep+ticker+os.sep+from_date.isoformat()+"_"+to_date.isoformat()+"_news.json"
+            with open(output_filename, "w+") as f:
+                json.dump(data, f)
+
+def fetch_price(args, ticker_dates, ticker):
+    for dateStr in ticker_dates[ticker]["dates"]:
+        if not os.path.isdir(args.output_dir+os.sep+ticker.lower()):
+            os.mkdir(args.output_dir+os.sep+ticker.lower())
+
+        to_date = date.fromisoformat(dateStr)
+        from_date = to_date - timedelta(days=NUM_DAYS_PRICE)
+        if args.debug:
+            print(f"From Date: {from_date.isoformat()}")
+            print(f"To Date: {to_date.isoformat()}")
+        else:
+            data = fetch_price_data_for_ticker(ticker, from_date, to_date)
+            output_filename = args.output_dir+os.sep+ticker+os.sep+from_date.isoformat()+"_"+to_date.isoformat()+"_price.json"
+            with open(output_filename, "w+") as f:
+                json.dump(data, f)
+    
 
 def main():
     # parse any commandline arguments
@@ -24,6 +63,9 @@ def main():
     parser.add_argument("--ticker_file", type=str, default='ticker_data.json', help="Path to the JSON file that contains ticker names and dates.")
     parser.add_argument("--output_dir", type=str, default='../../data/raw_data', help="Path to the directory where acquired data should be stored.")
     parser.add_argument("--debug", default=False, help="Setting flag to true disables api requests being sent out.", action="store_true")
+    parser.add_argument("--price", default=False, help="Setting flag to true fetches price data.", action="store_true")
+    parser.add_argument("--news", default=False, help="Setting flag to true fetches news data.", action="store_true")
+
     #Add any more arguments as and when needed
     args = parser.parse_args()
 
@@ -39,21 +81,12 @@ def main():
     for ticker in ticker_dates.keys():
         if ticker not in TICKER_TO_DOWNLOAD:
             continue
-        for date_str in ticker_dates[ticker]["dates"]:
-            #If news data for this ticker and date combination was already saved, skip ahead!
-            if not os.path.isdir(args.output_dir+os.sep+ticker.lower()):
-                os.mkdir(args.output_dir+os.sep+ticker.lower())
-
-            to_date = date.fromisoformat(date_str)
-            from_date = to_date - timedelta(days=NUM_DAYS)
-            if args.debug:
-                print(f"From Date: {from_date.isoformat()}")
-                print(f"To Date: {to_date.isoformat()}")
-            else:
-                data = fetch_news_data_for_ticker(ticker, from_date, to_date)
-                output_filename = args.output_dir+os.sep+ticker+os.sep+from_date.isoformat()+"_"+to_date.isoformat()+"_news.json"
-                with open(output_filename, "w+") as f:
-                    json.dump(data, f)
+        if args.news:
+            print(f"Fetching news for {ticker}")
+            fetch_news(args, ticker_dates, ticker)
+        if args.price:
+            print(f"Fetching price for {ticker}")
+            fetch_price(args, ticker_dates, ticker)
 
     return
 
