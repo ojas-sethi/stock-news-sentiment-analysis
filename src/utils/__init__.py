@@ -1,0 +1,1 @@
+from newsarticle import NewsArticle

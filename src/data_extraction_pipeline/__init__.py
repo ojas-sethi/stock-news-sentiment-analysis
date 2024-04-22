@@ -1,2 +1,3 @@
 from api_keys import EODHD_API_KEY
-from utils import *
+
+from utils import NewsArticle
