@@ -1,0 +1,8 @@
+torch
+torchvision
+torchaudio
+numpy
+pandas
+transformers
+requests
+beautifulsoup4
