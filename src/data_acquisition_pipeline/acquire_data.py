@@ -8,7 +8,7 @@ import requests
 
 # How many days before our chosen date do we fetch news articles from
 NUM_DAYS = 2
-TICKER_TO_DOWNLOAD = {"AMZN", "NVDA", "F", "VZ"}
+TICKER_TO_DOWNLOAD = {"AMZN", "NVDA", "F", "VZ", "AAPL", "TSLA", "BA", "BAC", "ILMN", "MMM"}
 
 def build_eodhd_url(s, from_date, to_date, limit=50, offset=0):
     return "https://eodhd.com/api/news?s=" + s +".US&offset="+offset+"&limit="+limit+"&from="+from_date+"&to="+to_date+"&api_token="+EODHD_API_KEY+"&fmt=json"
