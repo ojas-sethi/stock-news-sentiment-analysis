@@ -1,13 +1,14 @@
-import os, json
+import os, json, sys
 import argparse
 from datetime import date, timedelta
 import requests
 
 from collections import defaultdict
 import pickle
-from api_keys import *
 
-from newsarticle import NewsArticle
+sys.path.append('..')
+from api_keys import *
+from utils import NewsArticle
 
 
 # GLOBALS

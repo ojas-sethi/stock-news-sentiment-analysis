@@ -3,7 +3,10 @@ import argparse
 from datetime import date, timedelta
 import requests
 
+import sys
+sys.path.append('..')
 
+from api_keys import *
 # GLOBALS
 
 # How many days before our chosen date do we fetch news articles from
@@ -29,7 +32,7 @@ def fetch_news(args, ticker_dates, ticker):
             os.mkdir(args.output_dir+os.sep+ticker.lower())
 
         to_date = date.fromisoformat(date_str)
-        from_date = to_date - timedelta(days=NUM_DAYS_NEWS)
+        from_date = to_date - timedelta(days=NUM_DAYS)
         if args.debug:
             print(f"From Date: {from_date.isoformat()}")
             print(f"To Date: {to_date.isoformat()}")
@@ -45,7 +48,7 @@ def fetch_price(args, ticker_dates, ticker):
             os.mkdir(args.output_dir+os.sep+ticker.lower())
 
         to_date = date.fromisoformat(dateStr)
-        from_date = to_date - timedelta(days=NUM_DAYS_PRICE)
+        from_date = to_date - timedelta(days=NUM_DAYS)
         if args.debug:
             print(f"From Date: {from_date.isoformat()}")
             print(f"To Date: {to_date.isoformat()}")

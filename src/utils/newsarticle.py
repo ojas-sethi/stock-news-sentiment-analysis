@@ -1,13 +1,7 @@
 
 class NewsArticle:
-    def __init__(self, title: str, date: str, content: str) -> None:
-        self.title = title
-        self.date = date
-        self.content = content
-        self.open_price = None
-        self.close_price = None
-
-    def __init__(self, title: str, date: str, content: str, open_price: float, close_price: float) -> None:
+    def __init__(self, title: str, date: str, content: str,\
+                 open_price: float = None, close_price: float=None) -> None:
         self.title = title
         self.date = date
         self.content = content
