@@ -28,6 +28,7 @@ def main():
     parser.add_argument("--acquired_data_dir", type=str, default='../../data/raw_data', help="Path to the directory containing acquired data.")
     parser.add_argument("--output_dir", type=str, default='../../data/extracted_data', help="Path to the directory where acquired data should be stored.")
     parser.add_argument("--debug", default=False, help="Setting flag to true disables api requests being sent out.", action="store_true")
+    parser.add_argument("--cache", default=False, help="Setting flag to true writes a cache to load dataset with.", action="store_true")
     #Add any more arguments as and when needed
     args = parser.parse_args()
 
@@ -57,8 +58,6 @@ def main():
         if args.debug:
             print(f"Extracting data for {t}")
 
-        if not os.path.isdir(os.path.join(args.output_dir, t)):
-            os.mkdir(os.path.join(args.output_dir, t))
         if t not in ticker_news.keys():
             ticker_news[t] = {}
         ticker_dates = set()
@@ -87,8 +86,10 @@ def main():
                     price_data = json.loads(price_file.read())'''
                 dataset.add_to_dataset(news_data)
 
-    with open(os.path.join(args.output_dir, 'extracted_articles.pkl'), 'wb') as f:
-        pickle.dump(dataset, f)
+    dataset.write_dataset(args.output_dir)
+    #Cache
+    if args.cache:
+        dataset.write_cache(args.output_dir)
 
     return
 
