@@ -1,18 +1,19 @@
-
-class NewsArticle:
-    def __init__(self, title: str, date: str, content: str,\
-                 open_price: float = None, close_price: float=None) -> None:
-        self.title = title
-        self.date = date
-        self.content = content
-        self.open_price = open_price
-        self.close_price = close_price
+class NewsArticleDataset:
+    def __init__(self) -> None:
+        self.dataset = {'data': [], 'labels': []}
         
-    def set_open_price(self, open_price):
-        self.open_price = open_price
-    
-    def set_close_price(self, close_price):
-        self.close_price = close_price
 
-    def build_dataset():
-        return
+    def extract_news_data(self, news_article): 
+        return "\n".join([news_article['title'], news_article['content']])
+
+    def add_data(self, news_article):
+        self.dataset['data'].append(self.extract_news_data(news_article))
+        self.dataset['labels'].append(news_article['sentiment'])
+
+    def add_to_dataset(self, json_content):
+        if isinstance(json_content, list):
+            for news_article in json_content:
+                self.add_data(news_article)
+        else:
+            self.add_data(news_article)
+                    

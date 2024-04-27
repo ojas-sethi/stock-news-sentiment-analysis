@@ -8,7 +8,7 @@ import pickle
 
 sys.path.append('..')
 from api_keys import *
-from utils import NewsArticle
+from utils import NewsArticleDataset
 
 
 # GLOBALS
@@ -21,17 +21,6 @@ TICKER_TO_DOWNLOAD = {"AAPL", "AMZN", "NVDA", "F", "VZ", "AAPL", "TSLA", "BA", "
 Pipeline for extracting acquired data into separate documents 
 
 '''
-
-def extract_news_data(news_data_dict, price_data):
-    article = NewsArticle(news_data_dict["title"], \
-                          news_data_dict["date"].split("T")[0], \
-                          news_data_dict["content"])
-    for price in price_data:
-        if price["date"] == article.date:
-            article.set_open_price(price["open"])
-            article.set_close_price(price["adjusted_close"])
-    return article
-
 
 def main():
     # parse any commandline arguments
@@ -62,15 +51,21 @@ def main():
     ticker_news = defaultdict(set)
     list_articles = []
 
+    dataset = NewsArticleDataset()
+
     for t in tickers:
         if args.debug:
             print(f"Extracting data for {t}")
+
+        if not os.path.isdir(os.path.join(args.output_dir, t)):
+            os.mkdir(os.path.join(args.output_dir, t))
         if t not in ticker_news.keys():
             ticker_news[t] = {}
         ticker_dates = set()
         base_dir = os.path.join(args.acquired_data_dir,t)
         news_files = [f for f in os.listdir(base_dir) if os.path.isfile(os.path.join(base_dir, f)) and \
                       f.split('_')[2].split('.')[0] == 'news']
+        
         for f in news_files:
             date = f.split('_')[1]
 
@@ -79,7 +74,7 @@ def main():
             ticker_dates.add(date)
             with open(os.path.join(base_dir, f)) as file:
                 news_data = json.loads(file.read())
-                price_filename = None
+                '''price_filename = None
                 for fn in  os.listdir(base_dir):
                     if fn.split('_')[1] == date and fn.split('_')[2].split('.')[0] == 'price':
                         price_filename = fn
@@ -89,16 +84,11 @@ def main():
                     exit(1)
 
                 with open(os.path.join(base_dir, f)) as price_file:
-                    price_data = json.loads(price_file.read())
-                    
-                    if isinstance(news_data, list):
-                        for news_article in news_data:
-                            list_articles.append(extract_news_data(news_article, price_data))
-                    else:
-                        list_articles.appen(extract_news_data(news_data, price_data))
+                    price_data = json.loads(price_file.read())'''
+                dataset.add_to_dataset(news_data)
 
     with open(os.path.join(args.output_dir, 'extracted_articles.pkl'), 'wb') as f:
-        pickle.dump(list_articles, f)
+        pickle.dump(dataset, f)
 
     return
 
