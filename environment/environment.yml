@@ -8,4 +8,6 @@ dependencies:
   - python=3.10
   - pip:
     - requests
+    - nltk
+    - spacy
 prefix: /Users/arnavsharma/miniconda3/envs/cs839_project_env
