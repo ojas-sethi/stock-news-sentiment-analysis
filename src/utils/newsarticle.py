@@ -1,9 +1,10 @@
 import os
 import numpy as np
+import pickle
 
 class NewsArticleDataset:
-    def __init__(self) -> None:
-        self.dataset = {'data': [], 'labels': []}
+    def __init__(self, data_list = [], label_list = []) -> None:
+        self.dataset = {'data': data_list, 'labels': label_list}
 
     def add_data(self, news_article):
         extract_labels = lambda  a : np.array([a['sentiment']["polarity"], \
@@ -56,6 +57,17 @@ class NewsArticleDataset:
         for i, doc in enumerate(self.dataset["data"]):
             tuple_list.append((doc, self.dataset['labels'][i]))
 
-        import pickle
         with open(out_dir + os.sep + 'extracted_data.pkl', 'wb') as handle:
             pickle.dump(tuple_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    def load_from_cache(self, filepath):
+        with open(filepath, 'rb') as f:
+            data_list = pickle.load(f)
+            for data in data_list:
+                self.dataset['data'].append(data[0])
+                self.dataset['labels'].append(
+                    {"polarity": data[1][0],
+                     "neg": data[1][1],
+                     "neu": data[1][2],
+                     "pos": data[1][3]})
+

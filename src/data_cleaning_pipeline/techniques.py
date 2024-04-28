@@ -68,3 +68,6 @@ class CleaningTechniqueFactory:
               return stemming
         elif function == "remove_named_entities":
               return remove_named_entities
+        else:
+              print("Cleaning Technique not impleneted.")
+              return None
