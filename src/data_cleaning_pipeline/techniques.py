@@ -3,22 +3,23 @@ import re
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
+from nltk.stem import Wor
 import spacy
 
 def lower_case(data: str):
     return data.lower()
 
 def remove_punctuation(data: str):
-        return  data.translate(str.maketrans('', '', string.punctuation))
+    return  data.translate(str.maketrans('', '', string.punctuation))
 
 def remove_special_chars(data: str):
-        # TODO: What do we mean by special characters ? Anything that isn't alphanumeric?
-        return  [x for x in data if x.isalnum()]
+    # TODO: What do we mean by special characters ? Anything that isn't alphanumeric?
+    return  [x for x in data if x.isalnum()]
 
 def remove_urls(data: str):
-        # Match each word with a URL regex, and exclude matches
-        url_regex= r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\), ]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
-        return  " ".join([x for x in data.split(' ') if not bool(re.match(url_regex, x))])
+    # Match each word with a URL regex, and exclude matches
+    url_regex= r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\), ]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+    return  " ".join([x for x in data.split(' ') if not bool(re.match(url_regex, x))])
 
 '''
 TODO: Stop list removal and expanding abbreviations need more exploring.
@@ -51,23 +52,23 @@ TODO: Normalization
 
 class CleaningTechniqueFactory:
     def __init__(self) -> None:
-          pass
+        pass
     
     def generate_cleaning_technique(function: str):
         if function == "lower_case":
-              return lower_case
+            return lower_case
         elif function == "remove_punctuation":
-              return remove_punctuation
+            return remove_punctuation
         elif function == "remove_special_chars":
-              return remove_special_chars
+            return remove_special_chars
         elif function == "remove_urls":
-              return remove_urls
+            return remove_urls
         elif function == "remove_stop_words":
-              return remove_stop_words
+            return remove_stop_words
         elif function == "stemming":
-              return stemming
+            return stemming
         elif function == "remove_named_entities":
-              return remove_named_entities
+            return remove_named_entities
         else:
-              print("Cleaning Technique not impleneted.")
-              return None
+            print("Cleaning Technique not impleneted.")
+            return None
