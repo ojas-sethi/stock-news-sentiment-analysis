@@ -3,8 +3,9 @@ import re
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
-from nltk.stem import Wor
+from nltk.tokenize import word_tokenize
 import spacy
+import nltk
 
 def lower_case(data: str):
     return data.lower()
@@ -45,16 +46,20 @@ def remove_named_entities(data: str):
 
     return res
 
-'''
-TODO: Normalization
-'''
+def lemmatize(data):
+    tokens = word_tokenize(data)
+    lemmatizer = WordNetLemmatizer()
+    lemmatizedTokens = [lemmatizer.lemmatize(token) for token in tokens]
+
+    return ' '.join(lemmatizedTokens)
+
 
 
 class CleaningTechniqueFactory:
     def __init__(self) -> None:
         pass
     
-    def generate_cleaning_technique(function: str):
+    def generate_cleaning_technique(self, function: str):
         if function == "lower_case":
             return lower_case
         elif function == "remove_punctuation":
@@ -69,6 +74,10 @@ class CleaningTechniqueFactory:
             return stemming
         elif function == "remove_named_entities":
             return remove_named_entities
+        elif function == "lemmatize":
+            nltk.download('wordnet')
+            nltk.download('punkt')
+            return lemmatize
         else:
             print("Cleaning Technique not impleneted.")
             return None
