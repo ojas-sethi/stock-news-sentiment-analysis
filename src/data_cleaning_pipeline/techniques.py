@@ -29,7 +29,12 @@ TODO: Stop list removal and expanding abbreviations need more exploring.
 '''
 
 def remove_stop_words(data: str):
-    stop_words = set(stopwords.words('english'))
+    try:
+        stop_words = set(stopwords.words('english'))
+    except:
+        os.system("python -m nltk.downloader stopwords")
+        stop_words = set(stopwords.words('english'))
+
     return " ".join([x for x in data.split(" ") if not x in stop_words])
 
 def stemming(data: str):
@@ -62,7 +67,10 @@ def normalize_financial_terms(data: str):
     res = data
     with open('financial_terms.json', 'r') as f:
         financial_term_map = json.load(f)
-        # We need to use dictionary -> text map because tokenization can get rid of some terms
+        ''' 
+            We need to use dictionary -> text map because tokenization can get
+            rid of some terms which are a collection of words
+        '''
         for term in financial_term_map.keys():
             res = res.replace(term, financial_term_map[term])
 
@@ -70,14 +78,15 @@ def normalize_financial_terms(data: str):
 
 
 technique_to_function_map = dict({\
-        "lower_case":               lower_case,
-        "remove_punctuation":       remove_punctuation,
-        "remove_special_chars":     remove_special_chars,
-        "remove_urls":              remove_urls,
-        "stemming":                 stemming,
-        "remove_named_entities":    remove_named_entities,
-        "remove_stop_words":        remove_stop_words,
-        "default":                  default,
+        "lower_case":                       lower_case,
+        "remove_punctuation":               remove_punctuation,
+        "remove_special_chars":             remove_special_chars,
+        "remove_urls":                      remove_urls,
+        "stemming":                         stemming,
+        "remove_named_entities":            remove_named_entities,
+        "remove_stop_words":                remove_stop_words,
+        "normalize_financial_terms":        normalize_financial_terms,
+        "default":                          default,
     })
 
 
