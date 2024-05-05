@@ -75,7 +75,7 @@ class NewsArticleDataset:
                                 if os.path.isfile(os.path.join(data_path, name))])
         num_labels = len([name for name in os.listdir(labels_path) \
                           if os.path.isfile(os.path.join(labels_path, name))])
-        print(num_data_samples)
+
         assert num_data_samples == num_labels
 
         for i in range(num_data_samples):

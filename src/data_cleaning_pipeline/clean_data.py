@@ -34,13 +34,15 @@ def main():
     dataset = load_dataset(args.dataset_dir, args.load_from_cache)
     factory = CleaningTechniqueFactory()
 
-    cleaning_methods = factory.get_all_functions() if args.clean_method == 'all' \
-                        else args.clean_method.split(",")
+    cleaning_methods = factory.get_all_functions() if args.clean_methods == 'all' \
+                        else args.clean_methods.split(",")
 
     for cleaning_method in cleaning_methods:
+        if args.debug:
+            print(f"------------------ Processing Cleaning technique {cleaning_method} ------------------")
         clean_func = factory.generate_cleaning_technique(cleaning_method)
         cleaned_data = list(map(clean_func, dataset.get_data()))
-        print(len(cleaned_data))
+
         cleaned_dataset = NewsArticleDataset(cleaned_data, dataset.get_labels())
 
         if not os.path.isdir(args.output_dir):

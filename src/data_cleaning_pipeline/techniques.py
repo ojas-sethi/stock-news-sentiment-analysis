@@ -16,7 +16,7 @@ def remove_punctuation(data: str):
 
 def remove_special_chars(data: str):
     # TODO: What do we mean by special characters ? Anything that isn't alphanumeric?
-    return  [x for x in data if x.isalnum()]
+    return " ".join([x for x in data.split(" ") if x.isalnum()])
 
 def remove_urls(data: str):
     # Match each word with a URL regex, and exclude matches
@@ -69,7 +69,7 @@ class CleaningTechniqueFactory:
     def __init__(self) -> None:
         pass
     
-    def get_all_functions():
+    def get_all_functions(self):
         return list(technique_to_function_map.keys())
 
     def generate_cleaning_technique(self, function: str):
