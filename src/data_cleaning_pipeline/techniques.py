@@ -1,9 +1,9 @@
-import string
+import string, os
 import re
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
-import spacy
+import spacy, json
 
 def default(data: str):
     return data
@@ -37,7 +37,12 @@ def stemming(data: str):
     return " ".join([porter.stem(x, to_lowercase=False) for x in data.split(" ")])
 
 def remove_named_entities(data: str):
-    nlp = spacy.load("en_core_web_sm")
+    try:
+        nlp = spacy.load("en_core_web_md")
+    except:
+        os.system("python -m spacy download en_core_web_md")
+        nlp = spacy.load("en_core_web_md")
+
     proc_string = nlp(data)
     #print(proc_string)
     if not proc_string.ents:
@@ -53,10 +58,16 @@ def remove_named_entities(data: str):
 '''
 TODO: Normalization
 '''
-financial_term_map = dict({\
-    
+def normalize_financial_terms(data: str):
+    res = data
+    with open('financial_terms.json', 'r') as f:
+        financial_term_map = json.load(f)
+        # We need to use dictionary -> text map because tokenization can get rid of some terms
+        for term in financial_term_map.keys():
+            res = res.replace(term, financial_term_map[term])
 
-})
+    return res
+
 
 technique_to_function_map = dict({\
         "lower_case":               lower_case,
