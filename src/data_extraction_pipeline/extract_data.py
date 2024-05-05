@@ -60,7 +60,6 @@ def main():
 
         if t not in ticker_news.keys():
             ticker_news[t] = {}
-        ticker_dates = set()
         base_dir = os.path.join(args.acquired_data_dir,t)
         news_files = [f for f in os.listdir(base_dir) if os.path.isfile(os.path.join(base_dir, f)) and \
                       f.split('_')[2].split('.')[0] == 'news']
@@ -70,7 +69,6 @@ def main():
 
             if args.debug:
                 print(f"Extracting data for date {date}")
-            ticker_dates.add(date)
             with open(os.path.join(base_dir, f)) as file:
                 news_data = json.loads(file.read())
                 '''price_filename = None
