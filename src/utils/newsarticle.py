@@ -7,10 +7,7 @@ class NewsArticleDataset:
         self.dataset = {'data': data_list, 'labels': label_list}
 
     def add_data(self, news_article):
-        extract_labels = lambda  a : np.array([a['sentiment']["polarity"], \
-                                               a['sentiment']["neg"], \
-                                               a['sentiment']["neu"], \
-                                               a['sentiment']["pos"]])
+        extract_labels = lambda  a : a['sentiment']
         
         extract_news_data = lambda  a : "\n".join([a['title'], a['content']])
 
@@ -42,10 +39,9 @@ class NewsArticleDataset:
             # Write docs
             with open(dataset_dir + os.sep + str(i)+'.txt', 'w+') as f:
                 f.write(doc)
-
-        # Write labels
-        with open(label_dir + os.sep + 'labels.npy', 'wb') as f:
-            np.save(f, np.array(self.dataset['labels']))
+            # Write labels
+            with open(label_dir + os.sep + str(i)+'.pkl', 'wb') as f:
+                pickle.dump(self.dataset["labels"][i], f, protocol=pickle.HIGHEST_PROTOCOL)
 
         return
                     
@@ -70,4 +66,28 @@ class NewsArticleDataset:
                      "neg": data[1][1],
                      "neu": data[1][2],
                      "pos": data[1][3]})
+    
+    def load(self, directory_path):
+        labels_path = directory_path + os.sep + 'labels'
+        data_path = directory_path + os.sep + 'data'
+
+        num_data_samples = len([name for name in os.listdir(data_path) \
+                                if os.path.isfile(os.path.join(data_path, name))])
+        num_labels = len([name for name in os.listdir(labels_path) \
+                          if os.path.isfile(os.path.join(labels_path, name))])
+        print(num_data_samples)
+        assert num_data_samples == num_labels
+
+        for i in range(num_data_samples):
+            with open(data_path + os.sep + str(i)+'.txt', 'r') as f:
+                self.dataset['data'].append(f.read())
+            with open(labels_path + os.sep + str(i)+'.pkl', 'rb') as f:
+                self.dataset['labels'].append(pickle.load(f))
+        return
+                
+    def get_data(self):
+        return self.dataset['data']
+    
+    def get_labels(self):
+        return self.dataset['labels']
 

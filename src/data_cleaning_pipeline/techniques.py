@@ -3,8 +3,10 @@ import re
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
-from nltk.stem import Wor
 import spacy
+
+def default(data: str):
+    return data
 
 def lower_case(data: str):
     return data.lower()
@@ -49,26 +51,24 @@ def remove_named_entities(data: str):
 TODO: Normalization
 '''
 
+technique_to_function_map = \
+    {
+        "lower_case":               lower_case,
+        "remove_punctuation":       remove_punctuation,
+        "remove_special_chars":     remove_special_chars,
+        "remove_urls":              remove_urls,
+        "stemming":                 stemming,
+        "remove_named_entities":    remove_named_entities,
+        "remove_stop_words":        remove_stop_words,
+        "default":                  default,
+    }
+
+
 
 class CleaningTechniqueFactory:
     def __init__(self) -> None:
         pass
     
-    def generate_cleaning_technique(function: str):
-        if function == "lower_case":
-            return lower_case
-        elif function == "remove_punctuation":
-            return remove_punctuation
-        elif function == "remove_special_chars":
-            return remove_special_chars
-        elif function == "remove_urls":
-            return remove_urls
-        elif function == "remove_stop_words":
-            return remove_stop_words
-        elif function == "stemming":
-            return stemming
-        elif function == "remove_named_entities":
-            return remove_named_entities
-        else:
-            print("Cleaning Technique not impleneted.")
-            return None
+    def generate_cleaning_technique(self, function: str):
+        return technique_to_function_map[function] \
+               if function in technique_to_function_map else None
