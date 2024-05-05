@@ -53,9 +53,12 @@ def remove_named_entities(data: str):
 '''
 TODO: Normalization
 '''
+financial_term_map = dict({\
+    
 
-technique_to_function_map = \
-    {
+})
+
+technique_to_function_map = dict({\
         "lower_case":               lower_case,
         "remove_punctuation":       remove_punctuation,
         "remove_special_chars":     remove_special_chars,
@@ -64,7 +67,7 @@ technique_to_function_map = \
         "remove_named_entities":    remove_named_entities,
         "remove_stop_words":        remove_stop_words,
         "default":                  default,
-    }
+    })
 
 
 

@@ -10,4 +10,5 @@ dependencies:
     - requests
     - nltk
     - spacy
+    - bs4
 prefix: /Users/arnavsharma/miniconda3/envs/cs839_project_env
