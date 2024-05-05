@@ -39,6 +39,9 @@ def stemming(data: str):
 def remove_named_entities(data: str):
     nlp = spacy.load("en_core_web_sm")
     proc_string = nlp(data)
+    #print(proc_string)
+    if len(proc_string.ents) == 0:
+        return data
     res = data[:proc_string.ents[0].start_char]
     for i in range(1, len(proc_string.ents)):
         # The character before each entity should be a space ?
