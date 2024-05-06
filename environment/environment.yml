@@ -19,4 +19,5 @@ dependencies:
     - spacy
     - bs4
     - lxml
+    - scikit-learn
 prefix: /Users/arnavsharma/miniconda3/envs/cs839_project_env
