@@ -7,14 +7,69 @@ import csv, argparse, os, sys
 sys.path.append("../..")
 
 from utils import NewsArticleDataset
-
+from transformers import TrainingArguments, Trainer
+import numpy as np
+import operator
 
 DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+# Set global seed
+np.random.seed(42)
+torch.manual_seed(42)
+
+torch.set_default_dtype(torch.float32)
+
+
+def perform_test_train_split(dataset):
+    shuffled_inds = np.random.choice(len(dataset.get_labels()), len(dataset.get_labels()), replace=False)
+    train_end = int(0.7*len(shuffled_inds))
+    train_inds = shuffled_inds[:train_end]
+    test_inds = shuffled_inds[train_end:]
+    
+    return dataset.subset(train_inds), dataset.subset(test_inds)
 
 '''
 Since we're using the pre-trained model, we need to map labels to the same indices as the original paper.
 code from 
 '''
+
+def train_model(model, train_set, labels):
+    train_data = train_set.get_data()
+    train_labels = torch.tensor([[t_label[l] for l in labels] for t_label in train_set.get_labels()]).to(DEVICE)
+
+    optimizier = torch.optim.AdamW(params=model.parameters(), lr=2e-5, weight_decay=0.01)
+    optimizier.zero_grad()
+
+    for i in range(len(train_labels)):
+        encoded_text = tokenizer(train_data[i], return_tensors="pt", truncation=True, max_length=512, padding=True)
+        result = model(encoded_text['input_ids'].to(DEVICE))
+        score = torch.nn.functional.softmax(result.logits, dim=-1)
+
+        loss = torch.nn.functional.cross_entropy(score.squeeze(), train_labels[i])
+
+        loss.backward()
+        optimizier.step()
+    return
+
+def test_model(model, test_set, labels):
+    model.eval()
+    
+    test_data = train_set.get_data()
+    test_labels = torch.tensor([[t_label[l] for l in labels] for t_label in test_set.get_labels()])
+    y_hat = []
+    y = []
+    for i in range(len(test_labels)):
+        encoded_text = tokenizer(test_data[i], return_tensors="pt", truncation=True, max_length=512, padding=True)
+        result = model(encoded_text['input_ids'].to(DEVICE))
+        score = torch.nn.functional.softmax(result.logits).detach().cpu().numpy()
+        y_hat.append(labels[int(np.argmax(score, axis=-1))])
+        y.append(labels[int(np.argmax(test_labels[i], axis=-1))])
+
+    acc = [int(y_hat[i]==y[i]) for i in range(len(y_hat))]
+
+    print(f"Accuracy: {sum(acc)/len(acc)}")
+
+    return
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -34,9 +89,9 @@ if __name__ == "__main__":
 
     dataset = NewsArticleDataset()
     dataset.load(args.dataset_dir)
-
-    model = AutoModelForSequenceClassification.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment")
-    tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment")
+    train_set, test_set = perform_test_train_split(dataset)
+    model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=3)
+    tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
 
     labels=[]
     mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/sentiment/mapping.txt"
@@ -44,12 +99,21 @@ if __name__ == "__main__":
         html = f.read().decode('utf-8').split("\n")
         csvreader = csv.reader(html, delimiter='\t')
     labels = [row[1] for row in csvreader if len(row) > 1]
-    print(labels)
-    ## Don't compute gradients
-    model.to(DEVICE).eval()
-    scores = []
 
-    for text in dataset.get_data():
+    model.to(DEVICE)
+    
+    train_model(model, train_set, labels)
+
+    test_model(model, test_set, labels)
+    
+    if args.debug:
+        print(f"Labels: {labels}")
+        print(f"Using device: {DEVICE}")
+    ## Don't compute gradients
+    #model.to(DEVICE).eval()
+    #scores = []
+
+    '''for text in dataset.get_data():
     # TODO: remove this when done debugging
     #with open('article.txt', 'r') as f:
         #text = f.read()
@@ -64,8 +128,8 @@ if __name__ == "__main__":
             score_dict[labels[i]] = score[0, i]
         scores.append(score_dict)
     
-    acc = dataset.compute_metrics(scores)
+    acc = dataset.compute_metrics(scores)'''
 
-    print(acc)
+    #print(acc)
     #print(f1)
     

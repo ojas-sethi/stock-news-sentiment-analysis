@@ -18,16 +18,22 @@ class NewsArticleDataset:
         for i, label in enumerate(self.dataset['labels']):
             y_true_list.append(max(self.dataset['labels'][i].items(), key=operator.itemgetter(1))[0])
             y_hat_list.append(max(results[i].items(), key=operator.itemgetter(1))[0])
-            print(f"label: {max(self.dataset['labels'][i].items(), key=operator.itemgetter(1))[0]}")
-            print(f"prediction: {max(results[i].items(), key=operator.itemgetter(1))[0]}")
+            #print(f"label: {max(self.dataset['labels'][i].items(), key=operator.itemgetter(1))[0]}")
+            #print(f"prediction: {max(results[i].items(), key=operator.itemgetter(1))[0]}")
             acc.append(int(max(results[i].items(), key=operator.itemgetter(1))[0] == \
                        max(self.dataset['labels'][i].items(), key=operator.itemgetter(1))[0]))
         y = np.array(y_true_list)
         y_hat = np.array(y_hat_list)
-        accuracy = sum(acc)
+        accuracy = sum(acc)/len(self.dataset['labels'])
         return accuracy
 
-        
+    def subset(self, indices):
+        subset = NewsArticleDataset()
+        for ind in indices:
+            subset.dataset['data'].append(self.dataset['data'][ind])
+            subset.dataset['labels'].append(self.dataset['labels'][ind])
+        return subset
+
 
     def add_data(self, news_article):
         extract_labels = lambda  a : {v: a['sentiment'][k] \
