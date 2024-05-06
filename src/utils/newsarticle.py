@@ -1,13 +1,37 @@
 import os
 import numpy as np
 import pickle
+import operator
+
+from sklearn.metrics import f1_score
 
 class NewsArticleDataset:
     def __init__(self, data_list = [], label_list = []) -> None:
         self.dataset = {'data': data_list, 'labels': label_list}
 
+    def compute_metrics(self, results):
+        assert len(results) == len(self.dataset['labels'])
+
+        y_true_list = []
+        y_hat_list = []
+        acc = []
+        for i, label in enumerate(self.dataset['labels']):
+            y_true_list.append(max(self.dataset['labels'][i].items(), key=operator.itemgetter(1))[0])
+            y_hat_list.append(max(results[i].items(), key=operator.itemgetter(1))[0])
+            print(f"label: {max(self.dataset['labels'][i].items(), key=operator.itemgetter(1))[0]}")
+            print(f"prediction: {max(results[i].items(), key=operator.itemgetter(1))[0]}")
+            acc.append(int(max(results[i].items(), key=operator.itemgetter(1))[0] == \
+                       max(self.dataset['labels'][i].items(), key=operator.itemgetter(1))[0]))
+        y = np.array(y_true_list)
+        y_hat = np.array(y_hat_list)
+        accuracy = sum(acc)
+        return accuracy
+
+        
+
     def add_data(self, news_article):
-        extract_labels = lambda  a : a['sentiment']
+        extract_labels = lambda  a : {v: a['sentiment'][k] \
+                                      for k,v in {'neg':'negative', 'neu':'neutral', 'pos':'positive'}.items()}
         
         extract_news_data = lambda  a : "\n".join([a['title'], a['content']])
 
