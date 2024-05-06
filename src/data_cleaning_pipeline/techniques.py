@@ -3,6 +3,7 @@ import re
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 import spacy, json
 
 def default(data: str):
@@ -60,6 +61,13 @@ def remove_named_entities(data: str):
 
     return res
 
+def lemmatize(data):
+    tokens = word_tokenize(data)
+    lemmatizer = WordNetLemmatizer()
+    lemmatizedTokens = [lemmatizer.lemmatize(token) for token in tokens]
+
+    return ' '.join(lemmatizedTokens)
+
 '''
 TODO: Normalization
 '''
@@ -86,6 +94,7 @@ technique_to_function_map = dict({\
         "remove_named_entities":            remove_named_entities,
         "remove_stop_words":                remove_stop_words,
         "normalize_financial_terms":        normalize_financial_terms,
+        "lemmatize":                        lemmatize,
         "default":                          default,
     })
 
