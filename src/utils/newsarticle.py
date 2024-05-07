@@ -28,11 +28,12 @@ class NewsArticleDataset:
         return accuracy
 
     def subset(self, indices):
-        subset = NewsArticleDataset()
+        data_subset = []
+        labels_subset = []
         for ind in indices:
-            subset.dataset['data'].append(self.dataset['data'][ind])
-            subset.dataset['labels'].append(self.dataset['labels'][ind])
-        return subset
+            data_subset.append(self.dataset['data'][ind])
+            labels_subset.append(self.dataset['labels'][ind])
+        return data_subset, labels_subset
 
 
     def add_data(self, news_article):

@@ -11,7 +11,12 @@ from transformers import TrainingArguments, Trainer
 import numpy as np
 import operator
 
-DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+DEVICE = torch.device('cpu')
+if torch.cuda.is_available():
+    torch.device('cuda')
+elif torch.backends.mps.is_available():
+    torch.device('mps') 
+
 
 # Set global seed
 np.random.seed(42)
@@ -25,8 +30,9 @@ def perform_test_train_split(dataset):
     train_end = int(0.7*len(shuffled_inds))
     train_inds = shuffled_inds[:train_end]
     test_inds = shuffled_inds[train_end:]
-    
-    return dataset.subset(train_inds), dataset.subset(test_inds)
+    train_data, train_labels = dataset.subset(train_inds)
+    test_data, test_labels = dataset.subset(test_inds)
+    return NewsArticleDataset(train_data, train_labels), NewsArticleDataset(test_data, test_labels)  
 
 '''
 Since we're using the pre-trained model, we need to map labels to the same indices as the original paper.
