@@ -28,7 +28,7 @@ torch.set_default_dtype(torch.float32)
 
 def perform_test_train_split(dataset: NewsArticleDataset):
     shuffled_inds = np.random.choice(len(dataset.get_labels()), len(dataset.get_labels()), replace=False)
-    train_end = int(10)
+    train_end = int(0.8*len(shuffled_inds))
     train_inds = shuffled_inds[:train_end]
     test_inds = shuffled_inds[train_end:]
 
@@ -43,6 +43,7 @@ code from
 '''
 
 def train_model(model, train_set, labels, tokenizer):
+    model.train()
     train_data = train_set.get_data()
     train_labels = torch.tensor([[t_label[l] for l in labels] for t_label in train_set.get_labels()]).to(DEVICE)
 
@@ -77,7 +78,7 @@ def test_model(model, test_set, labels, tokenizer):
 
     acc = [int(y_hat[i]==y[i]) for i in range(len(y_hat))]
 
-    print(f"Accuracy: {sum(acc)/len(acc)}")
+    print(f"Validation Accuracy: {sum(acc)/len(acc)}")
 
     return
 
@@ -85,9 +86,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_dir", type=str, default='../../../data/cleaned_data/default', help="Path to the JSON file that contains ticker names and dates.")
     parser.add_argument("--clean_methods", type=str, default='default', help="Which cleaning technique to apply. Default is to not apply any cleaning technique.")
-    parser.add_argument("--output_dir", type=str, default='../../data/cleaned_data', help="Path to the directory where acquired data should be stored.")
+    parser.add_argument("--output_dir", type=str, default='./finetuned_models', help="Path to the directory where acquired data should be stored.")
     parser.add_argument("--debug", default=False, help="Setting flag to true disables api requests being sent out.", action="store_true")
-    parser.add_argument("--write_cache", default=False, help="Setting flag to true disables api requests being sent out.", action="store_true")
     parser.add_argument("--load_from_cache", default=False, help="Setting flag to true disables api requests being sent out.", action="store_true")
 
     #Add any more arguments as and when needed
@@ -120,31 +120,9 @@ def main():
 
     test_model(model, test_set, labels, tokenizer)
     
-    #model.to(DEVICE).eval()
-    #scores = []
-
-    '''for text in dataset.get_data():
-    # TODO: remove this when done debugging
-    #with open('article.txt', 'r') as f:
-        #text = f.read()
-        encoded_text = tokenizer(text, return_tensors="pt", truncation=True, max_length=512, padding=True)
-
-        result = model(encoded_text['input_ids'].to(DEVICE))
-
-        score = torch.nn.functional.softmax(result.logits).detach().cpu().numpy()
-        score_dict = {}
-
-        for i in range(score.shape[1]):
-            score_dict[labels[i]] = score[0, i]
-        scores.append(score_dict)
-    
-    acc = dataset.compute_metrics(scores)'''
-
-    #print(acc)
-    #print(f1)
+    model.save_pretrained(f"{args.output_dir}", from_pt=True)
 
 
 
 if __name__ == "__main__":
     main()
-    

@@ -4,10 +4,12 @@ import pickle
 import operator
 
 from sklearn.metrics import f1_score
+from copy import deepcopy
+
 
 class NewsArticleDataset:
     def __init__(self, data_list = [], label_list = []) -> None:
-        self.dataset = {'data': data_list, 'labels': label_list}
+        self.dataset = {'data': deepcopy(data_list), 'labels': deepcopy(label_list)}
 
     def compute_metrics(self, results):
         assert len(results) == len(self.dataset['labels'])

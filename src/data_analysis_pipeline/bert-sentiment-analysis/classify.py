@@ -10,6 +10,7 @@ from utils import NewsArticleDataset
 from transformers import TrainingArguments, Trainer
 import numpy as np
 import operator
+from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 DEVICE = torch.device('cpu')
 if torch.cuda.is_available():
@@ -42,24 +43,6 @@ Since we're using the pre-trained model, we need to map labels to the same indic
 code from 
 '''
 
-def train_model(model, train_set, labels, tokenizer):
-    train_data = train_set.get_data()
-    train_labels = torch.tensor([[t_label[l] for l in labels] for t_label in train_set.get_labels()]).to(DEVICE)
-
-    optimizier = torch.optim.AdamW(params=model.parameters(), lr=2e-5, weight_decay=0.01)
-    optimizier.zero_grad()
-
-    for i in range(len(train_labels)):
-        encoded_text = tokenizer(train_data[i], return_tensors="pt", truncation=True, max_length=512, padding=True)
-        result = model(encoded_text['input_ids'].to(DEVICE))
-        score = torch.nn.functional.softmax(result.logits, dim=-1)
-
-        loss = torch.nn.functional.cross_entropy(score.squeeze(), train_labels[i])
-
-        loss.backward()
-        optimizier.step()
-    return
-
 def test_model(model, test_set, labels, tokenizer):
     model.eval()
     
@@ -75,9 +58,39 @@ def test_model(model, test_set, labels, tokenizer):
         y_hat.append(labels[int(np.argmax(score, axis=-1))])
         y.append(labels[int(np.argmax(test_labels[i], axis=-1))])
 
-    acc = [int(y_hat[i]==y[i]) for i in range(len(y_hat))]
+    # Compute accuracy
+    acc = accuracy_score(y, y_hat)
 
-    print(f"Accuracy: {sum(acc)/len(acc)}")
+    pos_count = 0
+    neu_count = 0
+    neg_count = 0
+    for i in range(len(test_labels)):
+        if int(np.argmax(test_labels[i], axis=-1)) == 0:
+            pos_count+=1
+        elif int(np.argmax(test_labels[i], axis=-1)) == 1:
+            neu_count+=1
+        elif int(np.argmax(test_labels[i], axis=-1)) == 2:
+            neg_count+=1
+        else:
+            print("WTF")
+    print(f"pos_count: {pos_count}")
+    print(f"neu_count: {neu_count}")
+    print(f"neg_count: {neg_count}")
+    
+    # Compute Precision
+    precision, recall, f1_score, _ = precision_recall_fscore_support(y, y_hat, labels=labels)
+    
+
+    # Compute Recall
+    #recall = recall_score(y, y_hat, labels=labels)
+
+    # Compute F1 Score
+    #f1 = f1_score(y, y_hat, labels=labels)
+
+    print(f"Accuracy: {acc}")
+    print(f"Precision: {precision}")
+    print(f"Recall: {recall}")
+    print(f"F1 Score: {f1_score}")
 
     return
 
@@ -85,6 +98,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_dir", type=str, default='../../../data/cleaned_data/default', help="Path to the JSON file that contains ticker names and dates.")
     parser.add_argument("--clean_methods", type=str, default='default', help="Which cleaning technique to apply. Default is to not apply any cleaning technique.")
+    parser.add_argument("--model_path", type=str, default='./finetuned_models', help="Path to the directory where acquired data should be stored.")
     parser.add_argument("--output_dir", type=str, default='../../data/cleaned_data', help="Path to the directory where acquired data should be stored.")
     parser.add_argument("--debug", default=False, help="Setting flag to true disables api requests being sent out.", action="store_true")
     parser.add_argument("--write_cache", default=False, help="Setting flag to true disables api requests being sent out.", action="store_true")
@@ -99,8 +113,7 @@ def main():
 
     dataset = NewsArticleDataset()
     dataset.load(args.dataset_dir)
-    train_set, test_set = perform_test_train_split(dataset)
-    model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=3)
+    model = AutoModelForSequenceClassification.from_pretrained(args.model_path)
     tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
 
     labels=[]
@@ -116,9 +129,9 @@ def main():
         print(f"Labels: {labels}")
         print(f"Using device: {DEVICE}")
     
-    train_model(model, train_set, labels, tokenizer)
+    #train_model(model, train_set, labels, tokenizer)
 
-    test_model(model, test_set, labels, tokenizer)
+    test_model(model, dataset, labels, tokenizer)
     
     #model.to(DEVICE).eval()
     #scores = []
