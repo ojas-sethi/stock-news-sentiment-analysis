@@ -2,9 +2,10 @@ import string, os
 import re
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords, wordnet
+from nltk.corpus import sentiwordnet as swn
 from nltk.tokenize import word_tokenize
-import spacy, json
+import spacy, json, nltk
 
 def default(data: str):
     return data
@@ -68,9 +69,43 @@ def lemmatize(data):
 
     return ' '.join(lemmatizedTokens)
 
-'''
-TODO: Normalization
-'''
+def nltk_to_wordnet_pos(nltk_pos):
+    if nltk_pos.startswith('N'):
+        return wordnet.NOUN
+    elif nltk_pos.startswith('V'):
+        return wordnet.VERB
+    elif nltk_pos.startswith('R'):
+        return wordnet.ADV
+    elif nltk_pos.startswith('J'):
+        return wordnet.ADJ
+    else:
+        return None
+    
+def find_sentiment_synonym(word, positive=1, part_of_speech='n'):
+ 
+  best_synonym = None
+  best_score = float('-inf') if positive else float('inf')  # Initialize scores
+
+  synsets = list(swn.senti_synsets(word, pos=part_of_speech))
+  
+  if not synsets:
+    return word
+
+  # find the best synonym
+  for synset in synsets:
+    # Get the sentiment score
+    score = synset.pos_score() - synset.neg_score()
+    # Check if the word is positive
+    if positive and score > best_score:
+      best_score = score
+      best_synonym = synset.synset.name().split('.')[0]
+    # Check if the word is negative
+    elif not positive and score < best_score:
+      best_score = score
+      best_synonym = synset.synset.name().split('.')[0]
+
+  return best_synonym
+    
 def normalize_financial_terms(data: str):
     res = data
     with open('financial_terms.json', 'r') as f:
@@ -82,7 +117,29 @@ def normalize_financial_terms(data: str):
         for term in financial_term_map.keys():
             res = res.replace(term, financial_term_map[term])
 
-    return res
+    # load fin_lexicon.json
+    with open('fin_lexicon.json', 'r') as f:
+        finTerms = json.load(f)    
+    
+    # iterate over each sentence
+    for sentence in res.split('.'):
+        # detect pos tags for each word
+        pos_tags = nltk.pos_tag(nltk.word_tokenize(sentence))
+
+        # iterate over each word
+        for i in range(len(pos_tags)):
+            word = pos_tags[i][0]
+            # check if word is in financial terms
+            if word in finTerms:
+                # convert nltk pos to wordnet pos
+                pos = nltk_to_wordnet_pos(pos_tags[i][1])
+                # get sentiment of word
+                sentiment = finTerms[word]
+                # find synonym with max sentiment
+                synonym = find_sentiment_synonym(word, sentiment, pos)
+                res = res.replace(word, synonym)
+
+    return re
 
 
 technique_to_function_map = dict({\
