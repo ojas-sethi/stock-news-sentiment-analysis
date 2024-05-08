@@ -46,7 +46,7 @@ def fetch_news(args, ticker_dates, ticker):
             print(f"To Date: {build_alphavantage_datetime(to_date.isoformat())}")
         else:
             data = fetch_news_data_for_ticker(ticker, from_date, to_date)
-            output_filename = args.output_dir+os.sep+ticker+os.sep+from_date.isoformat()+"_"+to_date.isoformat()+"_news.json"
+            output_filename = args.output_dir+os.sep+ticker.lower()+os.sep+from_date.isoformat()+"_"+to_date.isoformat()+"_news.json"
             with open(output_filename, "w+") as f:
                 json.dump(data, f)
 
