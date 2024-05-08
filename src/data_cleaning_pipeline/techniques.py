@@ -165,5 +165,5 @@ class CleaningTechniqueFactory:
         return list(technique_to_function_map.keys())
 
     def generate_cleaning_technique(self, function: str):
-        return technique_to_function_map[function] \
-               if function in technique_to_function_map else None
+        return [technique_to_function_map[f] for f in function.split('+')\
+                if f in technique_to_function_map]

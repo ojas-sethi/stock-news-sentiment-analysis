@@ -38,10 +38,13 @@ def main():
                         else args.clean_methods.split(",")
 
     for cleaning_method in cleaning_methods:
-        if args.debug:
-            print(f"------------------ Processing Cleaning technique {cleaning_method} ------------------")
         clean_func = factory.generate_cleaning_technique(cleaning_method)
-        cleaned_data = [str(clean_func(x)) for x in dataset.get_data()]
+        
+        cleaned_data = dataset.get_data()
+        for f in clean_func:
+            if args.debug:
+                print(f"------------------ Processing Cleaning technique {f} ------------------")
+            cleaned_data = [f(x) for x in cleaned_data]
 
         cleaned_dataset = NewsArticleDataset(cleaned_data, dataset.get_labels())
 
