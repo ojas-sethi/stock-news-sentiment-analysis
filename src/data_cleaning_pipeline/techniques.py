@@ -7,20 +7,20 @@ from nltk.corpus import sentiwordnet as swn
 from nltk.tokenize import word_tokenize
 import spacy, json, nltk
 
-def default(data: str):
+def default(data: str) -> str:
     return data
 
-def lower_case(data: str):
+def lower_case(data: str) -> str:
     return data.lower()
 
-def remove_punctuation(data: str):
+def remove_punctuation(data: str) -> str:
     return  data.translate(str.maketrans('', '', string.punctuation))
 
-def remove_special_chars(data: str):
+def remove_special_chars(data: str) -> str:
     # TODO: What do we mean by special characters ? Anything that isn't alphanumeric?
     return " ".join([x for x in data.split(" ") if x.isalnum()])
 
-def remove_urls(data: str):
+def remove_urls(data: str) -> str:
     # Match each word with a URL regex, and exclude matches
     url_regex= r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\), ]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
     return  " ".join([x for x in data.split(' ') if not bool(re.match(url_regex, x))])
@@ -30,7 +30,7 @@ TODO: Stop list removal and expanding abbreviations need more exploring.
       What is going to be included in the dictionary?
 '''
 
-def remove_stop_words(data: str):
+def remove_stop_words(data: str) -> str:
     try:
         stop_words = set(stopwords.words('english'))
     except:
@@ -39,11 +39,11 @@ def remove_stop_words(data: str):
 
     return " ".join([x for x in data.split(" ") if not x in stop_words])
 
-def stemming(data: str):
+def stemming(data: str) -> str:
     porter = PorterStemmer()
     return " ".join([porter.stem(x, to_lowercase=False) for x in data.split(" ")])
 
-def remove_named_entities(data: str):
+def remove_named_entities(data: str) -> str:
     try:
         nlp = spacy.load("en_core_web_md")
     except:
@@ -62,7 +62,7 @@ def remove_named_entities(data: str):
 
     return res
 
-def lemmatize(data):
+def lemmatize(data) -> str:
     tokens = word_tokenize(data)
     lemmatizer = WordNetLemmatizer()
     lemmatizedTokens = [lemmatizer.lemmatize(token) for token in tokens]
@@ -81,7 +81,7 @@ def nltk_to_wordnet_pos(nltk_pos):
     else:
         return None
     
-def find_sentiment_synonym(word, positive=1, part_of_speech='n'):
+def find_sentiment_synonym(word, positive=1, part_of_speech='n') -> str:
  
   best_synonym = None
   best_score = float('-inf') if positive else float('inf')  # Initialize scores
@@ -106,7 +106,7 @@ def find_sentiment_synonym(word, positive=1, part_of_speech='n'):
 
   return best_synonym
     
-def normalize_financial_terms(data: str):
+def normalize_financial_terms(data: str) -> str:
     res = data
     with open('financial_terms.json', 'r') as f:
         financial_term_map = json.load(f)
@@ -139,7 +139,7 @@ def normalize_financial_terms(data: str):
                 synonym = find_sentiment_synonym(word, sentiment, pos)
                 res = res.replace(word, synonym)
 
-    return re
+    return res
 
 
 technique_to_function_map = dict({\

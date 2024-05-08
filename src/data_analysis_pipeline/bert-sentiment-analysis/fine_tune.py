@@ -9,7 +9,9 @@ sys.path.append("../..")
 from utils import NewsArticleDataset
 from transformers import TrainingArguments, Trainer
 import numpy as np
-import operator
+import urllib
+
+from lsg_converter import LSGConverter
 
 DEVICE = torch.device('cpu')
 if torch.cuda.is_available():
@@ -17,6 +19,12 @@ if torch.cuda.is_available():
 elif torch.backends.mps.is_available():
     DEVICE = torch.device('mps') 
 
+
+mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/sentiment/mapping.txt"
+with urllib.request.urlopen(mapping_link) as f:
+    html = f.read().decode('utf-8').split("\n")
+    csvreader = csv.reader(html, delimiter='\t')
+model_labels = [row[1] for row in csvreader if len(row) > 1]
 
 
 # Set global seed
@@ -42,10 +50,11 @@ Since we're using the pre-trained model, we need to map labels to the same indic
 code from 
 '''
 
-def train_model(model, train_set, labels, tokenizer):
+def train_model(model, train_set, labels, tokenizer, epochs=5):
     model.train()
+
     train_data = train_set.get_data()
-    train_labels = torch.tensor([[t_label[l] for l in labels] for t_label in train_set.get_labels()]).to(DEVICE)
+    train_labels = torch.tensor([[t_label[l] for l in model_labels] for t_label in train_set.get_labels()]).to(torch.bfloat16).to(DEVICE)
 
     optimizier = torch.optim.AdamW(params=model.parameters(), lr=2e-5, weight_decay=0.01)
     optimizier.zero_grad()
@@ -59,6 +68,7 @@ def train_model(model, train_set, labels, tokenizer):
 
         loss.backward()
         optimizier.step()
+
     return
 
 def test_model(model, test_set, labels, tokenizer):
@@ -70,11 +80,12 @@ def test_model(model, test_set, labels, tokenizer):
     y = []
 
     for i in range(len(test_labels)):
-        encoded_text = tokenizer(test_data[i], return_tensors="pt", truncation=True, max_length=512, padding=True)
+        encoded_text = tokenizer(test_data[i], return_tensors="pt", padding=True)
         result = model(encoded_text['input_ids'].to(DEVICE))
-        score = torch.nn.functional.softmax(result.logits).detach().cpu().numpy()
-        y_hat.append(labels[int(np.argmax(score, axis=-1))])
-        y.append(labels[int(np.argmax(test_labels[i], axis=-1))])
+        score = torch.nn.functional.softmax(result.logits, dim=-1).detach()
+        y_hat.append(model_labels[torch.argmax(score, axis=-1).item()])
+        print(f"Predicted Label: {y_hat[-1]}")
+        y.append(labels[torch.argmax(test_labels[i], axis=-1).item()])
 
     acc = [int(y_hat[i]==y[i]) for i in range(len(y_hat))]
 
@@ -99,26 +110,32 @@ def main():
 
     dataset = NewsArticleDataset()
     dataset.load(args.dataset_dir)
-    train_set, test_set = perform_test_train_split(dataset)
-    model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels=3)
-    tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+    converter = LSGConverter(max_sequence_length=16384)
 
-    labels=[]
+
+    #model, tokenizer = converter.convert_from_pretrained("cardiffnlp/twitter-roberta-base-sentiment", num_labels=3, num_global_tokens=8)
+
+    model = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert", num_labels=3)
+    tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert", do_lower_case = False)
+
+
+    '''labels=[]
     mapping_link = f"https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/sentiment/mapping.txt"
     with request.urlopen(mapping_link) as f:
         html = f.read().decode('utf-8').split("\n")
         csvreader = csv.reader(html, delimiter='\t')
-    labels = [row[1] for row in csvreader if len(row) > 1]
-
-    model.to(DEVICE)
+    labels = [row[1] for row in csvreader if len(row) > 1]'''
+    labels = dataset.labels_list
+    model.to(torch.bfloat16).to(DEVICE)
 
     if args.debug:
         print(f"Labels: {labels}")
         print(f"Using device: {DEVICE}")
-    
-    train_model(model, train_set, labels, tokenizer)
+    for i in range(5):
+        train_set, test_set = perform_test_train_split(dataset)
+        train_model(model, train_set, labels, tokenizer)
 
-    test_model(model, test_set, labels, tokenizer)
+        test_model(model, test_set, labels, tokenizer)
     
     model.save_pretrained(f"{args.output_dir}", from_pt=True)
 

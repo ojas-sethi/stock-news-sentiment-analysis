@@ -9,7 +9,9 @@ from copy import deepcopy
 
 class NewsArticleDataset:
     def __init__(self, data_list = [], label_list = []) -> None:
-        self.dataset = {'data': deepcopy(data_list), 'labels': deepcopy(label_list)}
+        self.dataset = {}
+        self.dataset['data'] = deepcopy(data_list)
+        self.dataset['labels'] = deepcopy(label_list)
 
     def compute_metrics(self, results):
         assert len(results) == len(self.dataset['labels'])
@@ -46,7 +48,6 @@ class NewsArticleDataset:
         extract_news_data = lambda  a : "\n".join([a['title'], a['summary']])
 
         self.dataset['data'].append(extract_news_data(news_article))
-
         ctr = 0
         for sentiment in news_article['ticker_sentiment']:
             if sentiment['ticker'] == ticker:
