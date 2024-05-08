@@ -12,13 +12,21 @@ from api_keys import *
 # How many days before our chosen date do we fetch news articles from
 NUM_DAYS_NEWS = 2
 NUM_DAYS_PRICE = 1
-TICKER_TO_DOWNLOAD = {"AAPL", "AMZN", "NVDA", "F", "VZ", "AAPL", "TSLA", "BA", "BAC", "ILMN", "MMM"}
+TICKER_TO_DOWNLOAD = {"TSLA", "BA", "BAC", "ILMN", "MMM"}
+
+
+def build_alphavantage_datetime(date: str):
+    return ''.join(date.split('-'))
+
+def build_alphavantage_url(s, from_date, to_date, limit=50, offset=0):
+    return f'https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={s}&apikey={ALPHA_VANTAGE_API_KEY}&time_from={build_alphavantage_datetime(from_date)}T0000&time_to={build_alphavantage_datetime(to_date)}T2359'
+
 
 def build_eodhd_url(s, from_date, to_date, limit=50, offset=0):
     return "https://eodhd.com/api/news?s=" + s +".US&offset="+offset+"&limit="+limit+"&from="+from_date+"&to="+to_date+"&api_token="+EODHD_API_KEY+"&fmt=json"
 
-def fetch_news_data_for_ticker(ticker, from_date, to_date, ):
-    url = build_eodhd_url(ticker.lower(), from_date.isoformat(), to_date.isoformat(), "1000", "0")
+def fetch_news_data_for_ticker(ticker, from_date, to_date):
+    url = build_alphavantage_url(ticker.lower(), from_date.isoformat(), to_date.isoformat(), 60, "0")
     return requests.get(url).json()
 
 def fetch_price_data_for_ticker(ticker, from_date, to_date):
@@ -34,8 +42,8 @@ def fetch_news(args, ticker_dates, ticker):
         to_date = date.fromisoformat(date_str)
         from_date = to_date - timedelta(days=NUM_DAYS_NEWS)
         if args.debug:
-            print(f"From Date: {from_date.isoformat()}")
-            print(f"To Date: {to_date.isoformat()}")
+            print(f"From Date: {build_alphavantage_datetime(from_date.isoformat())}")
+            print(f"To Date: {build_alphavantage_datetime(to_date.isoformat())}")
         else:
             data = fetch_news_data_for_ticker(ticker, from_date, to_date)
             output_filename = args.output_dir+os.sep+ticker+os.sep+from_date.isoformat()+"_"+to_date.isoformat()+"_news.json"

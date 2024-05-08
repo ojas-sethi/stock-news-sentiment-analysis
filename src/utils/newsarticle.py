@@ -38,21 +38,33 @@ class NewsArticleDataset:
         return data_subset, labels_subset
 
 
-    def add_data(self, news_article):
-        extract_labels = lambda  a : {v: a['sentiment'][k] \
-                                      for k,v in {'neg':'negative', 'neu':'neutral', 'pos':'positive'}.items()}
+    def add_data(self, news_article, ticker):
+        sentiment_dict= {"Bearish" : "negative", "Somewhat-Bearish": "negative",
+                         "Neutral": "neutral", "Somewhat-Bullish": "positive",\
+                         "Bullish": "positive"   }
         
-        extract_news_data = lambda  a : "\n".join([a['title'], a['content']])
+        extract_news_data = lambda  a : "\n".join([a['title'], a['summary']])
 
         self.dataset['data'].append(extract_news_data(news_article))
-        self.dataset['labels'].append(extract_labels(news_article))
 
-    def add_to_dataset(self, json_content):
+        ctr = 0
+        for sentiment in news_article['ticker_sentiment']:
+            if sentiment['ticker'] == ticker:
+                self.dataset['labels'].append(\
+                    sentiment_dict[sentiment["ticker_sentiment_label"]])
+                ctr+=1
+        if ctr != 1:
+            print(f"Found {ctr} labels for ticker: {ticker}")
+            print(news_article)
+            exit(1)
+
+    def add_to_dataset(self, json_content, ticker):
         if isinstance(json_content, list):
             for news_article in json_content:
                 self.add_data(news_article)
         else:
-            self.add_data(news_article)
+            for news_article in json_content['feed']:
+                self.add_data(news_article, ticker)
 
     def write_dataset(self, out_dir):
         # Create directory for dataset
@@ -68,13 +80,13 @@ class NewsArticleDataset:
 
         label_dir = out_dir+os.sep+'labels'
 
-        for i, doc in enumerate(self.dataset["data"]):
+        for i, (doc, label) in enumerate(zip(self.dataset["data"], self.dataset["labels"])):
             # Write docs
             with open(dataset_dir + os.sep + str(i)+'.txt', 'w+') as f:
                 f.write(doc)
             # Write labels
-            with open(label_dir + os.sep + str(i)+'.pkl', 'wb') as f:
-                pickle.dump(self.dataset["labels"][i], f, protocol=pickle.HIGHEST_PROTOCOL)
+            with open(label_dir + os.sep + str(i)+'.txt', 'w+') as f:
+                f.write(label)
 
         return
                     
@@ -82,23 +94,16 @@ class NewsArticleDataset:
         if not os.path.isdir(out_dir):
             print(f'Cannot write to {out_dir}. Directory doesn\'t exist.')
         
-        tuple_list = []
-        for i, doc in enumerate(self.dataset["data"]):
-            tuple_list.append((doc, self.dataset['labels'][i]))
-
         with open(out_dir + os.sep + 'extracted_data.pkl', 'wb') as handle:
-            pickle.dump(tuple_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(list(zip(self.dataset["data"], self.dataset["labels"])),\
+                        handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load_from_cache(self, filepath):
         with open(filepath, 'rb') as f:
             data_list = pickle.load(f)
             for data in data_list:
                 self.dataset['data'].append(data[0])
-                self.dataset['labels'].append(
-                    {"polarity": data[1][0],
-                     "neg": data[1][1],
-                     "neu": data[1][2],
-                     "pos": data[1][3]})
+                self.dataset['labels'].append(data[1])
     
     def load(self, directory_path):
         labels_path = directory_path + os.sep + 'labels'
@@ -114,8 +119,8 @@ class NewsArticleDataset:
         for i in range(num_data_samples):
             with open(data_path + os.sep + str(i)+'.txt', 'r') as f:
                 self.dataset['data'].append(f.read())
-            with open(labels_path + os.sep + str(i)+'.pkl', 'rb') as f:
-                self.dataset['labels'].append(pickle.load(f))
+            with open(labels_path + os.sep + str(i)+'.txt', 'r') as f:
+                self.dataset['labels'].append(f.read())
         return
                 
     def get_data(self):

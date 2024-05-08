@@ -28,7 +28,7 @@ def main():
     parser.add_argument("--acquired_data_dir", type=str, default='../../data/raw_data', help="Path to the directory containing acquired data.")
     parser.add_argument("--output_dir", type=str, default='../../data/extracted_data', help="Path to the directory where acquired data should be stored.")
     parser.add_argument("--debug", default=False, help="Setting flag to true disables api requests being sent out.", action="store_true")
-    parser.add_argument("--cache", default=False, help="Setting flag to true writes a cache to load dataset with.", action="store_true")
+    parser.add_argument("--write_cache", default=False, help="Setting flag to true writes a cache to load dataset with.", action="store_true")
     #Add any more arguments as and when needed
     args = parser.parse_args()
 
@@ -71,22 +71,16 @@ def main():
                 print(f"Extracting data for date {date}")
             with open(os.path.join(base_dir, f)) as file:
                 news_data = json.loads(file.read())
-                '''price_filename = None
-                for fn in  os.listdir(base_dir):
-                    if fn.split('_')[1] == date and fn.split('_')[2].split('.')[0] == 'price':
-                        price_filename = fn
-                        break
-                if price_filename is None:
-                    print(f'Couldn\'t find price file for date: {date}')
-                    exit(1)
+                
+                # ignore files we couldn't fetch for now
+                if isinstance(news_data, dict) and "Note" in news_data:
+                    continue
 
-                with open(os.path.join(base_dir, f)) as price_file:
-                    price_data = json.loads(price_file.read())'''
-                dataset.add_to_dataset(news_data)
+                dataset.add_to_dataset(news_data, t.upper())
 
     dataset.write_dataset(args.output_dir)
     #Cache
-    if args.cache:
+    if args.write_cache:
         dataset.write_cache(args.output_dir)
 
     return
