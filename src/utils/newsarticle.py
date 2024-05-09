@@ -83,10 +83,10 @@ class NewsArticleDataset:
 
         for i, (doc, label) in enumerate(zip(self.dataset["data"], self.dataset["labels"])):
             # Write docs
-            with open(dataset_dir + os.sep + str(i)+'.txt', 'w+') as f:
+            with open(dataset_dir + os.sep + str(i)+'.txt', 'w+', encoding='utf-8') as f:
                 f.write(doc)
             # Write labels
-            with open(label_dir + os.sep + str(i)+'.txt', 'w+') as f:
+            with open(label_dir + os.sep + str(i)+'.txt', 'w+', encoding='utf-8') as f:
                 f.write(label)
 
         return
