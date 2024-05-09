@@ -118,7 +118,7 @@ def test_model(model, test_set, labels, tokenizer):
             true_labels.extend(labels.cpu().numpy())
             predicted_labels.extend(predictions.cpu().numpy())
 
-    accuracy = sum(true_labels == predicted_labels) / len(true_labels)
+    accuracy = np.mean(np.array(true_labels) == np.array(predicted_labels))
     precision, recall, f1_score, _ = precision_recall_fscore_support(true_labels, predicted_labels, average='weighted')
     print(f"Accuracy: {accuracy}")
     # Compute Precision, Recall, F1 Score
