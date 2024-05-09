@@ -1,5 +1,6 @@
 import os, json, sys
 import argparse
+import pandas as pd
 from datetime import date, timedelta
 import requests
 
@@ -16,6 +17,22 @@ from utils import NewsArticleDataset
 # How many days before our chosen date do we fetch news articles from
 NUM_DAYS = 2
 TICKER_TO_DOWNLOAD = {"AAPL", "AMZN", "NVDA", "F", "VZ", "AAPL", "TSLA", "BA", "BAC", "ILMN", "MMM"}
+
+def augment_forex_data(dataset, acquired_data_dir):
+    # read forex.csv
+    forex_df = pd.read_csv(acquired_data_dir + '/forex/forex.csv')
+    # keep only the columns title, text, true_sentiment
+    forex_df = forex_df[['title', 'text', 'true_sentiment']]
+    # concatenate title and text into a new column called content
+    forex_df['content'] = forex_df['title'] + ' ' + forex_df['text']
+    # lower case the true_sentiment column
+    forex_df['true_sentiment'] = forex_df['true_sentiment'].str.lower()
+    data = forex_df['content'].tolist()
+    labels = forex_df['true_sentiment'].tolist()
+
+    dataset.dataset['data'] += data
+    dataset.dataset['labels'] += labels
+
 
 '''
 Pipeline for extracting acquired data into separate documents 
@@ -48,7 +65,7 @@ def main():
         exit(1)
 
     tickers = [d for d in os.listdir(args.acquired_data_dir) \
-               if os.path.isdir(os.path.join(args.acquired_data_dir,d))]
+                   if os.path.isdir(os.path.join(args.acquired_data_dir,d)) and d != 'forex']
     ticker_news = defaultdict(set)
     list_articles = []
 
@@ -77,6 +94,8 @@ def main():
                     continue
 
                 dataset.add_to_dataset(news_data, t.upper())
+    
+    augment_forex_data(dataset, args.acquired_data_dir)
 
     dataset.write_dataset(args.output_dir)
     #Cache
