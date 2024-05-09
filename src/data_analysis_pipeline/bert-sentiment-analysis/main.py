@@ -10,6 +10,7 @@ sys.path.append("../..")
 from utils import NewsArticleDataset
 from transformers import TrainingArguments, Trainer
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+from sklearn.utils import shuffle
 
 import numpy as np
 import operator
@@ -33,7 +34,8 @@ def perform_test_train_split(dataset: NewsArticleDataset):
     dataset = dataset.dataset
     data = dataset['data']
     labels = dataset['labels']
-
+    data, labels = shuffle(data, labels, random_state=0)
+    
     numTrain = int(len(data) * 0.4)
 
     train_data = data[:numTrain]
