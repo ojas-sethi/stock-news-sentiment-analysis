@@ -107,6 +107,11 @@ def find_sentiment_synonym(word, positive=1, part_of_speech='n') -> str:
   return best_synonym
     
 def normalize_financial_terms(data: str) -> str:
+    # nltk.download('averaged_perceptron_tagger')
+    # nltk.download('wordnet')
+    # nltk.download('sentiwordnet')
+    # nltk.download('punkt')
+
     res = data
     with open('financial_terms.json', 'r') as f:
         financial_term_map = json.load(f)
