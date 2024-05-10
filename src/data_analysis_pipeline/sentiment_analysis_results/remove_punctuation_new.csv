@@ -1,0 +1,2 @@
+,index,technique,accuracy,precision,recall,f1_score
+0,0,remove_punctuation,0.6786644565474781,0.7057381239097524,0.6786644565474781,0.6724953831138862

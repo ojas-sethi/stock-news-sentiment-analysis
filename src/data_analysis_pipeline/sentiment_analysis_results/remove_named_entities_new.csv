@@ -1,0 +1,2 @@
+,index,technique,accuracy,precision,recall,f1_score
+0,0,remove_named_entities,0.7004499171205304,0.7097457320726704,0.7004499171205304,0.6986860126658989
