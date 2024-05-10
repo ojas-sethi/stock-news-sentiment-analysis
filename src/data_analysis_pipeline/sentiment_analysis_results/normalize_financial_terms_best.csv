@@ -1,0 +1,2 @@
+,index,technique,accuracy,precision,recall,f1_score
+0,0,normalize_financial_terms,0.7688846791380535,0.7724586000202044,0.7688846791380535,0.7682769479177299

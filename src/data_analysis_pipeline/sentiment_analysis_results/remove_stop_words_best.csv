@@ -1,0 +1,2 @@
+,index,technique,accuracy,precision,recall,f1_score
+0,0,remove_stop_words,0.7392848685768411,0.7402761195643875,0.7392848685768411,0.7389569471794087
